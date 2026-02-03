@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>รายงานผลเลือกตั้ง 2566 (จำลอง)</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand__dot"></div>
+        <div>
+          <h1>รายงานผลเลือกตั้ง 2566</h1>
+          <p>รายงานผลอย่างไม่เป็นทางการแบบเรียลไทม์</p>
+        </div>
+      </div>
+      <div class="topbar__meta">
+        <div class="meta-card">
+          <span class="meta-label">นับแล้ว</span>
+          <strong id="countedTotal">0</strong>
+          <small>เขต</small>
+        </div>
+        <div class="meta-card">
+          <span class="meta-label">รวม ส.ส.</span>
+          <strong>500</strong>
+          <small>คน</small>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="overview">สรุปภาพรวม</button>
+      <button class="tab" data-tab="districts">รายเขต</button>
+      <button class="tab" data-tab="partylist">บัญชีรายชื่อ</button>
+      <button class="tab" data-tab="coalition">จำลองรัฐบาล</button>
+      <button class="tab" data-tab="input">กรอกข้อมูล</button>
+    </nav>
+
+    <main class="container">
+      <section class="panel active" id="overview">
+        <div class="grid">
+          <div class="card span-2">
+            <div class="card__header">
+              <h2>ภาพรวมที่นั่ง</h2>
+              <p>วางเมาส์เพื่อดูรายละเอียด • คลิกเพื่อตรึงพรรค</p>
+            </div>
+            <label class="toggle overview-toggle">
+              <input type="checkbox" id="includePartyList" checked />
+              <span>รวม ส.ส.บัญชีรายชื่อ</span>
+            </label>
+            <div class="party-list" id="partyOverview"></div>
+          </div>
+          <div class="card">
+            <div class="card__header">
+              <h2>อันดับพรรค</h2>
+              <p>เขต + บัญชีรายชื่อ</p>
+            </div>
+            <ol class="rank-list" id="topPartyList"></ol>
+          </div>
+          <div class="card">
+            <div class="card__header">
+              <h2>อัปเดตล่าสุด</h2>
+              <p id="latestUpdate">-</p>
+            </div>
+            <div class="progress">
+              <div class="progress__bar" id="progressBar"></div>
+            </div>
+            <div class="muted" id="progressLabel">0% นับแล้ว</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="districts">
+        <div class="grid">
+          <div class="card span-2">
+            <div class="card__header">
+              <h2>แผนที่เขตเลือกตั้งประเทศไทย</h2>
+              <p>วางเมาส์เพื่อดูรายละเอียด • คลิกเขตเพื่อกรอง</p>
+            </div>
+            <div class="thai-map">
+              <div class="map-zoom">
+                <button id="zoomIn" type="button">+</button>
+                <button id="zoomOut" type="button">−</button>
+                <button id="exportCoordinates" type="button" title="บันทึกพิกัด" style="display:none">💾</button>
+              </div>
+              <div id="mapViewport" class="map-viewport">
+                <div id="mapContent" class="map-content">
+                  <div id="mapMarkers" class="map-grid"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card district-sidebar">
+            <div class="card__header">
+              <h2>จำนวน ส.ส.เขต</h2>
+              <p>เรียงตามจำนวนที่นั่ง</p>
+            </div>
+            <div class="top3-panel">
+              <h3 id="top3Title">Top 3 คะแนน</h3>
+              <div id="top3List" class="top3-list">
+                <div class="muted">ยังไม่ได้เลือกเขต</div>
+              </div>
+            </div>
+            <div class="party-seats-header">
+              <span>อันดับ</span>
+              <span>พรรค</span>
+              <span>จำนวน ส.ส.เขต</span>
+            </div>
+            <div class="party-votes-list" id="partyVotesList"></div>
+            <!-- Hidden filters for JS compatibility -->
+            <select id="provinceFilter" style="display:none"></select>
+            <select id="partyFilter" style="display:none"></select>
+            <input id="districtSearch" type="hidden" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="partylist">
+        <div class="grid">
+          <div class="card span-2">
+            <div class="card__header">
+              <h2>ผลคะแนนบัญชีรายชื่อ</h2>
+              <p>ปรับได้จากตารางกรอกข้อมูล</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>พรรค</th>
+                    <th>ที่นั่งบัญชีรายชื่อ</th>
+                    <th>รวมที่นั่ง</th>
+                  </tr>
+                </thead>
+                <tbody id="partyListTable"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card__header">
+              <h2>สัดส่วนที่นั่ง</h2>
+              <p>เขต vs บัญชีรายชื่อ</p>
+            </div>
+            <div id="seatSplit"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="coalition">
+        <div class="grid">
+          <div class="card span-2">
+            <div class="card__header">
+              <h2>ลองตั้งรัฐบาลของคุณ</h2>
+              <p>คลิกเพิ่มพรรค • ต้องมีอย่างน้อย 250 เสียง</p>
+            </div>
+            <div class="party-picker" id="coalitionList"></div>
+          </div>
+          <div class="card">
+            <div class="card__header">
+              <h2>คะแนนเสียงรวม</h2>
+              <p>ต้องมีอย่างน้อย 250 เสียง</p>
+            </div>
+            <div class="coalition-score">
+              <strong id="coalitionTotal">0</strong>
+              <span>เสียง</span>
+            </div>
+            <p class="status" id="coalitionStatus">ยังไม่ถึง 250 เสียง</p>
+            <div class="coalition-tags" id="coalitionTags"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="input">
+        <div class="grid">
+          <div class="card span-2">
+            <div class="card__header">
+              <h2>ตารางนำเข้าข้อมูลรายเขต</h2>
+              <p>ใช้รูปแบบเดียวกับ <a href="https://docs.google.com/spreadsheets/d/19cLkQfXtcwbnVFR6ilNd7ZeqRTUYU2jrmCCRsyFJ61w/edit?gid=0#gid=0" target="_blank" class="sheet-link">Google Sheet นี้</a></p>
+            </div>
+            <div class="input-actions">
+              <button id="importFromSheet">นำเข้าจาก Google Sheet</button>
+              <button id="downloadTemplate">ดาวน์โหลดเทมเพลต CSV</button>
+              <label class="upload">
+                <input type="file" id="csvUpload" accept=".csv" />
+                อัปโหลด CSV
+              </label>
+              <button id="applyCsv">นำข้อมูลไปใช้</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ภาค</th>
+                    <th>จังหวัด</th>
+                    <th>เขต</th>
+                    <th>ชื่อ</th>
+                    <th>พรรค 2569</th>
+                    <th>คะแนน</th>
+                  </tr>
+                </thead>
+                <tbody id="inputTable"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card__header">
+              <h2>ตารางบัญชีรายชื่อ (ถ้ามี)</h2>
+              <p>อัปโหลดจาก <a href="https://docs.google.com/spreadsheets/d/19cLkQfXtcwbnVFR6ilNd7ZeqRTUYU2jrmCCRsyFJ61w/edit?gid=170759107#gid=170759107" target="_blank" class="sheet-link">แท็บ สส บัญชีรายชื่อ</a></p>
+            </div>
+            <div class="input-actions">
+              <button id="importPartyListFromSheet">นำเข้าจาก Google Sheet</button>
+              <button id="downloadPartyListTemplate">ดาวน์โหลดเทมเพลต CSV</button>
+              <label class="upload">
+                <input type="file" id="partyListUpload" accept=".csv" />
+                อัปโหลด CSV
+              </label>
+              <button id="addPartyRow">เพิ่มพรรค</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>พรรค</th>
+                    <th>ที่นั่งบัญชีรายชื่อ</th>
+                  </tr>
+                </thead>
+                <tbody id="partyListInputTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="tooltip" class="tooltip" role="tooltip"></div>
+
+    <script src="data/results.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

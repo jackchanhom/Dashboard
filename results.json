@@ -1,0 +1,80 @@
+{
+  "partyList": [
+    {
+      "party": "เพื่อไทย",
+      "votes": 0,
+      "seats": 0,
+      "color": "#d92d27"
+    },
+    {
+      "party": "ประชาชน",
+      "votes": 0,
+      "seats": 0,
+      "color": "#f38b00"
+    },
+    {
+      "party": "ภูมิใจไทย",
+      "votes": 0,
+      "seats": 0,
+      "color": "#1aa260"
+    }
+  ],
+  "candidates": [
+    {
+      "region": "ใต้",
+      "province": "กระบี่",
+      "district": 3,
+      "name": "ประเสริฐพงษ์ ศรนุวัตร์",
+      "party": "ประชาชน",
+      "votes": 18735
+    },
+    {
+      "region": "ใต้",
+      "province": "กระบี่",
+      "district": 1,
+      "name": "สุวรรณ อินพรหม",
+      "party": "เพื่อไทย",
+      "votes": 19025
+    },
+    {
+      "region": "ใต้",
+      "province": "กระบี่",
+      "district": 3,
+      "name": "กิตติชัย เอ่งฉ้วน",
+      "party": "ภูมิใจไทย",
+      "votes": 17944
+    },
+    {
+      "region": "ใต้",
+      "province": "กระบี่",
+      "district": 2,
+      "name": "กฤตพร บุษย์เพชร",
+      "party": "ประชาธิปัตย์",
+      "votes": 18056
+    },
+    {
+      "region": "กลาง",
+      "province": "กรุงเทพมหานคร",
+      "district": 18,
+      "name": "ธีระวิทย์ วงศ์เพชร",
+      "party": "ไทยก้าวใหม่",
+      "votes": 25152
+    },
+    {
+      "region": "กลาง",
+      "province": "กรุงเทพมหานคร",
+      "district": 11,
+      "name": "วรัญชัย โชคชนะ",
+      "party": "ประชาธิปไตยใหม่",
+      "votes": 17993
+    },
+    {
+      "region": "กลาง",
+      "province": "กรุงเทพมหานคร",
+      "district": 3,
+      "name": "กันต์ณกฤต ยูนิพันธ์",
+      "party": "รวมไทยสร้างชาติ",
+      "votes": 5083
+    }
+  ]
+}
