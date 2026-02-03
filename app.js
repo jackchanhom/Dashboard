@@ -1174,7 +1174,7 @@ const downloadPartyListTemplate = async () => {
 const SHEET_ID = "19cLkQfXtcwbnVFR6ilNd7ZeqRTUYU2jrmCCRsyFJ61w";
 const DISTRICT_GID = "0";
 const PARTY_LIST_GID = "170759107";
-const CORS_PROXY = "https://corsproxy.io/?";
+const CORS_PROXY = "https://api.allorigins.win/raw?url=";
 
 const importFromGoogleSheet = async () => {
   const cacheBuster = `&_t=${Date.now()}`;
