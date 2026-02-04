@@ -472,15 +472,21 @@ const renderOverview = () => {
   elements.countedTotal.textContent = formatNumber(totalCounted);
 
   const latest = state.rawRows[state.rawRows.length - 1];
-  elements.latestUpdate.textContent = latest
-    ? `${latest.province} เขต ${latest.district} อัปเดตล่าสุด`
-    : "ยังไม่มีการอัปเดต";
+  if (elements.latestUpdate) {
+    elements.latestUpdate.textContent = latest
+      ? `${latest.province} เขต ${latest.district} อัปเดตล่าสุด`
+      : "ยังไม่มีการอัปเดต";
+  }
 
   const progress = totalDistricts
     ? Math.round((totalCounted / totalDistricts) * 100)
     : 0;
-  elements.progressBar.style.width = `${progress}%`;
-  elements.progressLabel.textContent = `${progress}% นับแล้ว`;
+  if (elements.progressBar) {
+    elements.progressBar.style.width = `${progress}%`;
+  }
+  if (elements.progressLabel) {
+    elements.progressLabel.textContent = `${progress}% นับแล้ว`;
+  }
 
   const list = [...state.parties]
     .map((party) => ({
