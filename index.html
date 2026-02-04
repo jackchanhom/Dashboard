@@ -31,8 +31,9 @@
 
     <header class="topbar">
       <div class="brand">
-        <h1>รายงานผลเลือกตั้ง 2566</h1>
+        <h1>รายงานผลเลือกตั้ง 2569</h1>
         <p>รายงานผลอย่างไม่เป็นทางการแบบเรียลไทม์</p>
+        <span class="brand-credit">by Jack Chanhom</span>
       </div>
       <div class="topbar__meta">
         <div class="meta-card">
@@ -73,7 +74,10 @@
           <div class="card">
             <div class="card__header">
               <h2>อันดับพรรค</h2>
-              <p>เขต + บัญชีรายชื่อ</p>
+              <div class="split-legend">
+                <span class="legend-item"><span class="legend-color" style="background:var(--accent-emerald)"></span>ส.ส.เขต</span>
+                <span class="legend-item"><span class="legend-color" style="background:var(--bg-primary);border:1px solid var(--border-color)"></span>บัญชีรายชื่อ</span>
+              </div>
             </div>
             <ol class="rank-list" id="topPartyList"></ol>
           </div>
@@ -132,31 +136,19 @@
       </section>
 
       <section class="panel" id="partylist">
-        <div class="grid">
-          <div class="card span-2">
+        <div class="partylist-container">
+          <div class="card partylist-card">
             <div class="card__header">
               <h2>ผลคะแนนบัญชีรายชื่อ</h2>
-              <p>ปรับได้จากตารางกรอกข้อมูล</p>
+              <div class="partylist-legend">
+                <span class="legend-label">อันดับ</span>
+                <span class="legend-label"></span>
+                <span class="legend-label"></span>
+                <span class="legend-label">จำนวน ส.ส.บัญชีรายชื่อ</span>
+                <span class="legend-label"></span>
+              </div>
             </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>พรรค</th>
-                    <th>ที่นั่งบัญชีรายชื่อ</th>
-                    <th>รวมที่นั่ง</th>
-                  </tr>
-                </thead>
-                <tbody id="partyListTable"></tbody>
-              </table>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card__header">
-              <h2>สัดส่วนที่นั่ง</h2>
-              <p>เขต vs บัญชีรายชื่อ</p>
-            </div>
-            <div id="seatSplit"></div>
+            <div class="partylist-grid" id="partyListTable"></div>
           </div>
         </div>
       </section>
@@ -270,7 +262,7 @@
       <div class="modal-content">
         <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
         <div class="modal-header">
-          <span class="modal-party-color"></span>
+          <div class="modal-party-logo" id="modalPartyLogo"></div>
           <h2 class="modal-title">ผู้ชนะจากพรรค</h2>
           <span class="modal-count"></span>
         </div>

@@ -71,6 +71,75 @@ const elements = {
 const formatNumber = (value) =>
   new Intl.NumberFormat("th-TH").format(value || 0);
 
+// Animation Helpers
+const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
+const easeOutBounce = (t) => {
+  const n1 = 7.5625;
+  const d1 = 2.75;
+  if (t < 1 / d1) return n1 * t * t;
+  if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+  if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+  return n1 * (t -= 2.625 / d1) * t + 0.984375;
+};
+
+const animateValue = (element, start, end, duration = 1000) => {
+  if (!element) return;
+  const range = end - start;
+  const startTime = performance.now();
+  
+  const update = (currentTime) => {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easedProgress = easeOutQuart(progress);
+    const value = Math.floor(start + range * easedProgress);
+    element.textContent = formatNumber(value);
+    element.classList.add('counting');
+    
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    } else {
+      element.classList.remove('counting');
+    }
+  };
+  requestAnimationFrame(update);
+};
+
+const triggerConfetti = (count = 100) => {
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  document.body.appendChild(container);
+  
+  const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
+  
+  for (let i = 0; i < count; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animationDelay = Math.random() * 2 + 's';
+    confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+    
+    // Random shapes
+    const shapes = ['circle', 'square', 'triangle'];
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    if (shape === 'circle') {
+      confetti.style.borderRadius = '50%';
+    } else if (shape === 'triangle') {
+      confetti.style.width = '0';
+      confetti.style.height = '0';
+      confetti.style.borderLeft = '5px solid transparent';
+      confetti.style.borderRight = '5px solid transparent';
+      confetti.style.borderBottom = '10px solid ' + confetti.style.background;
+      confetti.style.background = 'transparent';
+    }
+    
+    container.appendChild(confetti);
+  }
+  
+  // Clean up after animation
+  setTimeout(() => container.remove(), 5000);
+};
+
 let tooltipTimeout = null;
 
 const updateTooltip = (event, html) => {
@@ -119,7 +188,7 @@ const showPartyWinnersModal = (partyName, partyColor) => {
   const modal = document.getElementById("partyWinnersModal");
   const titleEl = modal.querySelector(".modal-title");
   const countEl = modal.querySelector(".modal-count");
-  const colorEl = modal.querySelector(".modal-party-color");
+  const logoEl = document.getElementById("modalPartyLogo");
   const listEl = document.getElementById("modalWinnersList");
   
   // Filter winners by party and sort by province, then district
@@ -133,7 +202,11 @@ const showPartyWinnersModal = (partyName, partyColor) => {
   
   // Set party color as CSS variable
   modal.style.setProperty("--modal-accent", partyColor);
-  colorEl.style.background = partyColor;
+  
+  // Set party logo in header
+  if (logoEl) {
+    logoEl.innerHTML = getPartyLogoHtml(partyName, partyColor, 40);
+  }
   
   // Update header
   titleEl.textContent = `ผู้ชนะจากพรรค${partyName}`;
@@ -265,6 +338,36 @@ const partyColors = {
   "ก้าวไกล": "#F97316",
   "ชาติไทยพัฒนา": "#4CAF50",
   "ชาติพัฒนากล้า": "#8BC34A",
+};
+
+// Party logo helper - returns logo URL or null if not found
+const LOGO_PATH = "party_logos_circle";
+const getPartyLogoUrl = (partyName) => {
+  if (!partyName) return null;
+  // Return the path to the logo file
+  return `${LOGO_PATH}/${encodeURIComponent(partyName)}.png`;
+};
+
+// Generate logo HTML with fallback to color dot
+const getPartyLogoHtml = (partyName, partyColor, size = 24) => {
+  const logoUrl = getPartyLogoUrl(partyName);
+  return `
+    <img 
+      src="${logoUrl}" 
+      alt="${partyName}" 
+      class="party-logo" 
+      style="width:${size}px;height:${size}px;"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='block';"
+    />
+    <span class="party-color-fallback" style="display:none;background:${partyColor};width:${size}px;height:${size}px;"></span>
+  `;
+};
+
+// Candidate/PM image helper
+const CANDIDATE_PATH = "candidate_pics";
+const getCandidateImageUrl = (partyName) => {
+  if (!partyName) return null;
+  return `${CANDIDATE_PATH}/${encodeURIComponent(partyName)}_candidate.png`;
 };
 
 // Pixel-based layout matching reference image
@@ -642,11 +745,69 @@ const updateLoadingScreen = (status, progress, substatus = "") => {
   if (substatusEl) substatusEl.textContent = substatus;
 };
 
-const hideLoadingScreen = (delay = 500) => {
+// Trigger entrance animations function
+const triggerEntranceAnimations = () => {
+  // Remove animation class from all previously animated elements
+  document.querySelectorAll('.entrance-animate').forEach((el) => {
+    el.classList.remove('entrance-animate');
+    el.style.removeProperty('--entrance-index');
+  });
+
+  // Let the DOM apply display changes before re-adding classes
+  requestAnimationFrame(() => {
+    const activePanel = document.querySelector('.panel.active');
+    if (!activePanel || activePanel.id === 'input') return;
+
+    const selectors = [
+      '.partylist-row',
+      '.seat-dot',
+      '.top-party-bar',
+      '.top-party-candidate',
+      '.party-row',
+      '.top3-item',
+      '.party-card',
+      '.party-seat-row',
+      '.district-box:not(.no-data)',
+    ];
+
+    selectors.forEach((selector) => {
+      activePanel.querySelectorAll(selector).forEach((el, index) => {
+        if (el.classList.contains('top-party-candidate')) {
+          el.classList.remove('entrance-complete');
+        }
+        el.classList.add('entrance-animate');
+        el.style.setProperty('--entrance-index', index);
+
+        if (el.classList.contains('top-party-candidate')) {
+          const onAnimationEnd = (event) => {
+            if (event.animationName !== 'riseUp') return;
+            el.classList.remove('entrance-animate');
+            el.classList.add('entrance-complete');
+            el.removeEventListener('animationend', onAnimationEnd);
+          };
+          el.addEventListener('animationend', onAnimationEnd);
+        }
+      });
+    });
+
+    // Cards inside the active panel
+    activePanel.querySelectorAll('.card').forEach((el, index) => {
+      el.classList.add('entrance-animate');
+      el.style.setProperty('--entrance-index', index);
+    });
+
+  });
+};
+
+const hideLoadingScreen = (delay = 500, triggerAnimations = false) => {
   const overlay = document.getElementById("loadingOverlay");
   if (overlay) {
     setTimeout(() => {
       overlay.classList.add("hidden");
+      // Trigger entrance animations after loading screen is hidden
+      if (triggerAnimations) {
+        setTimeout(triggerEntranceAnimations, 50);
+      }
     }, delay);
   }
 };
@@ -740,9 +901,9 @@ const loadData = async () => {
   initMapDrag();
   recalculate();
   
-  // Hide loading screen
+  // Hide loading screen and trigger entrance animations
   updateLoadingScreen("โหลดเสร็จสมบูรณ์!", 100);
-  hideLoadingScreen(800);
+  hideLoadingScreen(800, true);
 };
 
 const recalculate = () => {
@@ -824,12 +985,20 @@ const renderAll = () => {
 const renderOverview = () => {
   const totalCounted = state.districtWinners.length;
   const totalDistricts = getTotalDistricts(state.rawRows);
-  elements.countedTotal.textContent = formatNumber(totalCounted);
+  
+  // Animate counter values
+  const currentCounted = parseInt(elements.countedTotal.textContent.replace(/,/g, '')) || 0;
+  if (currentCounted !== totalCounted) {
+    animateValue(elements.countedTotal, currentCounted, totalCounted, 800);
+  }
   
   // Update party list seats total
   const totalPartyListSeats = state.partyList.reduce((sum, p) => sum + (p.seats || 0), 0);
   if (elements.partyListSeatsTotal) {
-    elements.partyListSeatsTotal.textContent = formatNumber(totalPartyListSeats);
+    const currentPartyList = parseInt(elements.partyListSeatsTotal.textContent.replace(/,/g, '')) || 0;
+    if (currentPartyList !== totalPartyListSeats) {
+      animateValue(elements.partyListSeatsTotal, currentPartyList, totalPartyListSeats, 800);
+    }
   }
 
   const list = [...state.parties]
@@ -843,12 +1012,13 @@ const renderOverview = () => {
     .map((party) => {
       const row = document.createElement("div");
       row.className = "party-row";
+      row.style.setProperty("--party-color", party.color);
       if (state.pinnedPartyId === party.id) {
         row.classList.add("pinned");
       }
       row.innerHTML = `
         <div class="party-tag">
-          <span class="party-color" style="background:${party.color}"></span>
+          ${getPartyLogoHtml(party.name, party.color, 28)}
           <strong>${party.name}</strong>
         </div>
         <span>${party.districtSeats} เขต / ${party.listSeats} บัญชี</span>
@@ -879,13 +1049,65 @@ const renderOverview = () => {
   elements.partyOverview.innerHTML = "";
   list.forEach((row) => elements.partyOverview.appendChild(row));
 
+  // Render top 5 parties with big bars and candidate photos
   elements.topPartyList.innerHTML = "";
-  list.slice(0, 5).forEach((row, index) => {
+  const topParties = [...state.parties]
+    .map((party) => ({
+      ...party,
+      displayTotal: state.includePartyList ? party.totalSeats : party.districtSeats,
+    }))
+    .sort((a, b) => b.displayTotal - a.displayTotal)
+    .slice(0, 5);
+  
+  topParties.forEach((party, index) => {
     const li = document.createElement("li");
+    li.className = "top-party-bar";
+    li.style.setProperty("--party-color", party.color);
+    
+    // Distribute candidate positions: rank 1 = 25%, rank 5 = 55%
+    const candidateX = 25 + (index * 11); // 25%, 32.5%, 40%, 47.5%, 55%
+    li.style.setProperty("--candidate-x", `${candidateX}%`);
+    
+    // Lower ranked candidates have higher z-index (appear in front)
+    const zIndex = index + 1; // 1, 2, 3, 4, 5
+    li.style.setProperty("--candidate-z", zIndex);
+    
+    // Special size for เพื่อไทย (make it bigger)
+    const candidateHeight = party.name === "เพื่อไทย" ? 160 : 130;
+    li.style.setProperty("--candidate-height", `${candidateHeight}px`);
+    
+    const candidateImgUrl = getCandidateImageUrl(party.name);
+    const logoUrl = getPartyLogoUrl(party.name);
+    
     li.innerHTML = `
-      <span>อันดับ ${index + 1} ${row.querySelector("strong").textContent}</span>
-      <strong>${row.querySelector("span:last-child").textContent}</strong>
+      <span class="top-party-rank">${index + 1}</span>
+      <div class="top-party-main" style="background: ${party.color}">
+        <img src="${logoUrl}" alt="" class="top-party-logo" onerror="this.style.display='none'" />
+        <img 
+          src="${candidateImgUrl}" 
+          alt="" 
+          class="top-party-candidate"
+          onerror="this.style.display='none'"
+        />
+        <div class="top-party-info">
+          <span class="top-party-name">${party.name}</span>
+          <span class="top-party-total">${party.displayTotal}</span>
+        </div>
+      </div>
+      <div class="top-party-split">
+        <div class="split-district">
+          <span class="split-value">${party.districtSeats}</span>
+        </div>
+        <div class="split-list">
+          <span class="split-value">${party.listSeats}</span>
+        </div>
+      </div>
     `;
+    
+    li.addEventListener("click", () => {
+      showPartyWinnersModal(party.name, party.color);
+    });
+    
     elements.topPartyList.appendChild(li);
   });
 };
@@ -941,10 +1163,14 @@ const renderPartyVotes = () => {
     const row = document.createElement("div");
     row.className = "party-seat-row";
     const color = partyColorMap.get(item.party) || partyColors[item.party] || "#64748b";
+    row.style.setProperty("--party-color", color);
     const barWidth = Math.max(30, (item.seatCount / maxSeats) * 100);
     
     row.innerHTML = `
       <span class="rank">${index + 1}</span>
+      <div class="party-logo-wrapper">
+        ${getPartyLogoHtml(item.party, color, 32)}
+      </div>
       <div class="bar-container">
         <div class="bar" style="background:${color}; width:${barWidth}%">
           <span class="party-name">${item.party}</span>
@@ -995,7 +1221,7 @@ const renderDistrictMap = () => {
 
   elements.mapMarkers.innerHTML = "";
 
-  (normalizedLayout.provinces || []).forEach((provinceDef) => {
+  (normalizedLayout.provinces || []).forEach((provinceDef, provinceIndex) => {
     const totalDistricts =
       provinceDef.districts || totalsByProvince.get(provinceDef.name) || 0;
 
@@ -1011,7 +1237,8 @@ const renderDistrictMap = () => {
     // Use pixel-based positioning
     provinceEl.style.left = `${posX}px`;
     provinceEl.style.top = `${posY}px`;
-    provinceEl.innerHTML = `<div class="map-province__name">${provinceDef.name}</div>`;
+    provinceEl.style.setProperty('--province-index', provinceIndex);
+    provinceEl.innerHTML = `<div class="map-province__name" style="--province-index: ${provinceIndex}">${provinceDef.name}</div>`;
 
     // Province dragging disabled
     // provinceEl.addEventListener("mousedown", (event) => {
@@ -1039,6 +1266,7 @@ const renderDistrictMap = () => {
       const box = document.createElement("div");
       box.className = "district-box";
       box.textContent = district;
+      box.style.setProperty('--district-index', district + provinceIndex * 10);
       if (!winner) {
         box.classList.add("no-data");
       } else {
@@ -1192,63 +1420,65 @@ const renderTop3 = () => {
     return;
   }
 
-  // Build the counted display HTML
-  const countedHtml = countedValue 
-    ? `<div class="counted-status">
-        <span class="counted-label">หน่วยที่นับได้</span>
-        <span class="counted-value">${countedValue}</span>
-      </div>`
-    : "";
+  // Update the title with counted status
+  if (elements.top3Title) {
+    const countedBadge = countedValue 
+      ? `<span class="counted-status"><span class="counted-label">หน่วยที่นับได้</span><span class="counted-value">${countedValue}</span></span>`
+      : "";
+    elements.top3Title.innerHTML = `Top 3 คะแนน (${province} เขต ${district})${countedBadge}`;
+  }
 
-  elements.top3List.innerHTML = countedHtml + top3
+  // Get party colors for logos
+  const partyColorMap = getPartyColorMap(state.parties);
+  
+  elements.top3List.innerHTML = top3
     .map(
-      (candidate, index) => `
-      <div class="top3-item">
-        <span>#${index + 1} ${candidate.name} (${candidate.party})</span>
+      (candidate, index) => {
+        const color = partyColorMap.get(candidate.party) || partyColors[candidate.party] || "#64748b";
+        return `
+      <div class="top3-item" style="--party-color: ${color}">
+        <span class="top3-rank">#${index + 1}</span>
+        <span class="top3-logo">${getPartyLogoHtml(candidate.party, color, 24)}</span>
+        <span class="top3-info">
+          <span class="top3-name">${candidate.name}</span>
+          <span class="top3-party">${candidate.party}</span>
+        </span>
         <strong>${formatNumber(candidate.votes)}</strong>
       </div>
-    `
+    `;
+      }
     )
     .join("");
 };
 
 const renderPartyList = () => {
   elements.partyListTable.innerHTML = "";
-  const sorted = [...state.parties].sort(
-    (a, b) => b.listSeats - a.listSeats
-  );
-  sorted.forEach((party) => {
-    const row = document.createElement("tr");
+  const sorted = [...state.parties]
+    .filter(p => p.listSeats > 0)
+    .sort((a, b) => b.listSeats - a.listSeats);
+  
+  sorted.forEach((party, index) => {
+    const row = document.createElement("div");
+    row.className = "partylist-row";
+    row.style.setProperty("--party-color", party.color);
+    
+    // Generate dots for each seat with staggered animation index
+    const dots = Array(party.listSeats).fill(0).map((_, i) => 
+      `<span class="seat-dot" style="background: ${party.color}; opacity: ${1 - (i * 0.015)}; --dot-index: ${i}"></span>`
+    ).join("");
+    
     row.innerHTML = `
-      <td>
-        <span class="party-tag">
-          <span class="party-color" style="background:${party.color}"></span>
-          ${party.name}
-        </span>
-      </td>
-      <td>${party.listSeats}</td>
-      <td>${party.totalSeats}</td>
+      <span class="partylist-rank">${index + 1}</span>
+      <div class="partylist-logo">
+        ${getPartyLogoHtml(party.name, party.color, 48)}
+      </div>
+      <span class="partylist-name">${party.name}</span>
+      <span class="partylist-seats">${party.listSeats}</span>
+      <div class="partylist-dots">${dots}</div>
     `;
-    if (state.pinnedPartyId === party.id) {
-      row.style.background = "#e9f2ff";
-    }
+    
     elements.partyListTable.appendChild(row);
   });
-
-  elements.seatSplit.innerHTML = sorted
-    .map(
-      (party) => `
-      <div class="party-row">
-        <div class="party-tag">
-          <span class="party-color" style="background:${party.color}"></span>
-          <strong>${party.name}</strong>
-        </div>
-        <span>${party.districtSeats} / ${party.listSeats}</span>
-        <span>${party.totalSeats}</span>
-      </div>
-    `
-    )
-    .join("");
 };
 
 const renderCoalition = () => {
@@ -1257,11 +1487,12 @@ const renderCoalition = () => {
   sorted.forEach((party) => {
     const card = document.createElement("div");
     card.className = "party-card";
+    card.style.setProperty("--party-color", party.color);
     if (state.selectedParties.has(party.id)) {
       card.classList.add("active");
     }
     card.innerHTML = `
-      <span class="party-color" style="background:${party.color}"></span>
+      ${getPartyLogoHtml(party.name, party.color, 28)}
       <strong>${party.name}</strong>
       <span>${party.totalSeats} ที่นั่ง</span>
     `;
@@ -1280,13 +1511,33 @@ const renderCoalition = () => {
   updateCoalitionScore();
 };
 
+let lastCoalitionTotal = 0;
+let confettiTriggered = false;
+
 const updateCoalitionScore = () => {
   const selected = state.parties
     .filter((party) => state.selectedParties.has(party.id))
     .sort((a, b) => b.totalSeats - a.totalSeats);
   const baseTotal = selected.reduce((sum, party) => sum + party.totalSeats, 0);
   const total = baseTotal;
-  elements.coalitionTotal.textContent = formatNumber(total);
+  
+  // Animate the number change
+  const currentTotal = parseInt(elements.coalitionTotal.textContent.replace(/,/g, '')) || 0;
+  if (currentTotal !== total) {
+    animateValue(elements.coalitionTotal, currentTotal, total, 500);
+  }
+  
+  // Trigger confetti when crossing 250 threshold
+  if (total >= 250 && lastCoalitionTotal < 250 && !confettiTriggered) {
+    confettiTriggered = true;
+    triggerConfetti(150);
+    elements.coalitionStatus.classList.add('success-burst');
+    setTimeout(() => elements.coalitionStatus.classList.remove('success-burst'), 2000);
+  } else if (total < 250) {
+    confettiTriggered = false;
+  }
+  lastCoalitionTotal = total;
+  
   elements.coalitionStatus.textContent =
     total >= 250 ? "เสียงเพียงพอจัดตั้งรัฐบาล" : `ขาดอีก ${250 - total} เสียง`;
   elements.coalitionTags.innerHTML = selected
@@ -1724,6 +1975,9 @@ document.querySelectorAll(".tab").forEach((tab) => {
       .querySelectorAll(".panel")
       .forEach((panel) => panel.classList.remove("active"));
     document.getElementById(tab.dataset.tab).classList.add("active");
+    
+    // Trigger entrance animations on tab switch
+    triggerEntranceAnimations();
   });
 });
 

@@ -130,6 +130,15 @@ body {
   margin-top: 0.3rem;
 }
 
+.brand-credit {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
 .topbar__meta {
   display: flex;
   gap: 1rem;
@@ -240,11 +249,20 @@ body {
 .grid {
   display: grid;
   gap: 1.5rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr 1.2fr;
 }
 
 .span-2 {
-  grid-column: span 2;
+  grid-column: span 1;
+}
+
+/* For districts page - keep 2:1 ratio */
+#districts .grid {
+  grid-template-columns: 2fr 1fr;
+}
+
+#districts .span-2 {
+  grid-column: span 1;
 }
 
 /* =============================================
@@ -319,27 +337,147 @@ body {
   gap: 0.6rem;
 }
 
+/* Party List Tab - New Design */
+.partylist-container {
+  width: 100%;
+}
+
+.partylist-card {
+  width: 100%;
+}
+
+.partylist-legend {
+  display: grid;
+  grid-template-columns: 40px 60px 180px 120px 1fr;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  padding: 0.5rem 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.partylist-legend .legend-label:first-child {
+  text-align: center;
+}
+
+.partylist-legend .legend-label:nth-child(4) {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.partylist-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+
+.partylist-row {
+  display: grid;
+  grid-template-columns: 40px 60px 180px 70px 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--party-color) 40%, var(--bg-elevated)) 0%,
+    var(--bg-elevated) 40%
+  );
+  border-left: 3px solid var(--party-color);
+  transition: all 0.2s ease;
+}
+
+.partylist-row:hover {
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--party-color) 15%, var(--bg-elevated)) 0%,
+    color-mix(in srgb, var(--party-color) 5%, var(--bg-elevated)) 60%
+  );
+}
+
+.partylist-rank {
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.partylist-logo {
+  display: flex;
+  justify-content: center;
+}
+
+.partylist-logo .party-logo {
+  width: 48px;
+  height: 48px;
+}
+
+.partylist-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.partylist-seats {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.partylist-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: flex-start;
+  align-content: flex-start;
+  max-height: 50px;
+  overflow: hidden;
+}
+
+.seat-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+
 .party-row {
+  --party-color: #64748b;
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: 0.8rem;
   align-items: center;
   padding: 0.9rem 1rem;
   border-radius: 12px;
-  background: var(--bg-elevated);
-  border: 1px solid transparent;
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--party-color) 15%, var(--bg-elevated)) 0%,
+    var(--bg-elevated) 40%);
+  border: 1px solid color-mix(in srgb, var(--party-color) 20%, transparent);
+  border-left: 4px solid var(--party-color);
   cursor: pointer;
   transition: var(--transition-fast);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--party-color) 15%, transparent);
 }
 
 .party-row:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-light);
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--party-color) 25%, var(--bg-card-hover)) 0%,
+    var(--bg-card-hover) 50%);
+  border-color: color-mix(in srgb, var(--party-color) 50%, transparent);
+  border-left-color: var(--party-color);
+  box-shadow: 
+    0 0 25px color-mix(in srgb, var(--party-color) 35%, transparent),
+    0 4px 15px color-mix(in srgb, var(--party-color) 25%, transparent);
 }
 
 .party-row.pinned {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 1px var(--accent-blue), var(--shadow-glow);
+  border-color: var(--party-color);
+  box-shadow: 
+    0 0 0 1px var(--party-color), 
+    0 0 30px color-mix(in srgb, var(--party-color) 45%, transparent),
+    inset 0 0 20px color-mix(in srgb, var(--party-color) 10%, transparent);
 }
 
 .party-tag {
@@ -355,14 +493,211 @@ body {
   box-shadow: 0 0 8px currentColor;
 }
 
+/* Party Logo Styles */
+.party-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg-elevated);
+}
+
+.party-logo-lg {
+  width: 40px;
+  height: 40px;
+}
+
+.party-logo-sm {
+  width: 18px;
+  height: 18px;
+}
+
+.party-color-fallback {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.party-logo-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .rank-list {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 1.2rem;
   list-style: none;
+  padding: 0;
+  padding-top: 3rem;
 }
 
-.rank-list li {
+/* Top Party Bar - Big colorful bars with candidate photos */
+.top-party-bar {
+  --party-color: #64748b;
+  --candidate-x: 50%;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  margin-bottom: 0.5rem;
+}
+
+.top-party-bar:hover {
+  transform: scale(1.02);
+}
+
+.top-party-bar:hover .top-party-main {
+  box-shadow: 0 8px 35px color-mix(in srgb, var(--party-color) 60%, transparent);
+}
+
+.top-party-bar:hover .top-party-candidate {
+  transform: translateX(-50%) scale(1.05);
+}
+
+.top-party-rank {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 36px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 1.2rem;
+}
+
+.top-party-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.8rem;
+  padding-left: 70px;
+  border-radius: 20px;
+  height: 65px;
+  position: relative;
+  overflow: visible;
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--party-color) 40%, transparent);
+  transition: var(--transition-fast);
+}
+
+.top-party-candidate {
+  position: absolute;
+  left: var(--candidate-x);
+  bottom: 0;
+  transform: translateX(-50%);
+  height: var(--candidate-height, 130px);
+  width: auto;
+  object-fit: contain;
+  z-index: var(--candidate-z, 1);
+  transition: transform 0.3s ease;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));
+}
+
+.top-party-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  z-index: 10;
+  text-align: right;
+  padding-right: 0;
+  margin-left: auto;
+}
+
+.top-party-logo {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.95);
+  padding: 6px;
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border: 3px solid rgba(255,255,255,0.8);
+}
+
+.top-party-name {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+.top-party-total {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.5);
+  line-height: 1;
+}
+
+.top-party-split {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 55px;
+  align-self: stretch;
+}
+
+.split-district,
+.split-list {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+}
+
+.split-district {
+  background: var(--accent-emerald);
+}
+
+.split-list {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+}
+
+.split-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.split-list .split-value {
+  color: var(--text-primary);
+}
+
+/* Split Legend */
+.split-legend {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+/* Fallback for old rank-list items */
+.rank-list li:not(.top-party-bar) {
   display: flex;
   justify-content: space-between;
   background: var(--bg-elevated);
@@ -372,7 +707,7 @@ body {
   transition: var(--transition-fast);
 }
 
-.rank-list li:hover {
+.rank-list li:not(.top-party-bar):hover {
   background: var(--bg-card-hover);
 }
 
@@ -430,51 +765,109 @@ input[type="search"]::placeholder {
   font-weight: 600;
   margin-bottom: 0.6rem;
   color: var(--text-primary);
+  position: relative;
+  padding-right: 100px;
 }
 
 .top3-list {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .top3-item {
+  --party-color: #64748b;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
   font-size: 0.85rem;
   color: var(--text-secondary);
-  padding: 0.3rem 0;
+  padding: 0.6rem 0.8rem;
+  margin: 0 -0.6rem;
+  border-radius: 10px;
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--party-color) 15%, transparent) 0%,
+    transparent 60%);
+  border-left: 4px solid var(--party-color);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--party-color) 15%, transparent);
+  transition: var(--transition-fast);
+}
+
+.top3-item:hover {
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--party-color) 25%, transparent) 0%,
+    transparent 70%);
+  box-shadow: 
+    0 0 20px color-mix(in srgb, var(--party-color) 30%, transparent),
+    0 4px 12px color-mix(in srgb, var(--party-color) 20%, transparent);
+}
+
+.top3-item:last-child {
+  border-bottom: none;
+}
+
+.top3-item .top3-rank {
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 24px;
+}
+
+.top3-item .top3-logo {
+  flex-shrink: 0;
+}
+
+.top3-item .top3-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.top3-item .top3-name {
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.top3-item .top3-party {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 .top3-item strong {
   color: var(--accent-emerald);
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 /* Counted Status Display */
 .counted-status {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 10px;
-  padding: 0.6rem 1rem;
-  margin-bottom: 0.75rem;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .counted-label {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
+  opacity: 0.8;
 }
 
 .counted-value {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--accent-blue);
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .counted-unit {
@@ -515,15 +908,22 @@ td {
 }
 
 tbody tr {
+  --party-color: #64748b;
   transition: var(--transition-fast);
 }
 
 tbody tr:hover {
-  background: var(--bg-elevated);
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--party-color) 18%, var(--bg-elevated)) 0%,
+    var(--bg-elevated) 50%);
+  box-shadow: inset 4px 0 0 var(--party-color);
 }
 
 tbody tr.active {
-  background: rgba(59, 130, 246, 0.15);
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--party-color) 20%, var(--bg-elevated)) 0%,
+    var(--bg-elevated) 60%);
+  box-shadow: inset 4px 0 0 var(--party-color);
 }
 
 /* =============================================
@@ -536,25 +936,44 @@ tbody tr.active {
 }
 
 .party-card {
+  --party-color: #64748b;
   padding: 1rem;
   border-radius: 14px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-color);
+  background: linear-gradient(180deg, 
+    color-mix(in srgb, var(--party-color) 8%, var(--bg-elevated)) 0%,
+    var(--bg-elevated) 40%);
+  border: 1px solid color-mix(in srgb, var(--party-color) 25%, transparent);
+  border-top: 4px solid var(--party-color);
   cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   transition: var(--transition-fast);
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--party-color) 12%, transparent);
 }
 
 .party-card:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-light);
+  background: linear-gradient(180deg, 
+    color-mix(in srgb, var(--party-color) 18%, var(--bg-card-hover)) 0%,
+    var(--bg-card-hover) 50%);
+  border-color: color-mix(in srgb, var(--party-color) 50%, transparent);
+  border-top-color: var(--party-color);
+  box-shadow: 
+    0 0 25px color-mix(in srgb, var(--party-color) 35%, transparent),
+    0 6px 20px color-mix(in srgb, var(--party-color) 25%, transparent);
+  transform: translateY(-2px);
 }
 
 .party-card.active {
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 1px var(--accent-blue), var(--shadow-glow);
+  border-color: var(--party-color);
+  border-top-color: var(--party-color);
+  background: linear-gradient(180deg, 
+    color-mix(in srgb, var(--party-color) 22%, var(--bg-elevated)) 0%,
+    var(--bg-elevated) 60%);
+  box-shadow: 
+    0 0 0 2px var(--party-color), 
+    0 0 35px color-mix(in srgb, var(--party-color) 50%, transparent),
+    inset 0 0 25px color-mix(in srgb, var(--party-color) 12%, transparent);
 }
 
 .coalition-score {
@@ -1045,16 +1464,26 @@ button:disabled:hover {
 }
 
 .party-seat-row {
+  --party-color: #64748b;
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.4rem 0;
+  padding: 0.5rem 0.5rem;
+  margin: 0 -0.5rem;
+  border-radius: 8px;
   border-bottom: 1px solid var(--border-color);
+  border-left: 3px solid transparent;
   transition: var(--transition-fast);
 }
 
 .party-seat-row:hover {
-  background: rgba(255, 255, 255, 0.02);
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--party-color) 20%, transparent) 0%,
+    transparent 70%);
+  border-left-color: var(--party-color);
+  box-shadow: 
+    0 0 20px color-mix(in srgb, var(--party-color) 25%, transparent),
+    inset 0 0 15px color-mix(in srgb, var(--party-color) 8%, transparent);
 }
 
 .party-seat-row:last-child {
@@ -1067,6 +1496,15 @@ button:disabled:hover {
   color: var(--text-muted);
   min-width: 28px;
   text-align: center;
+}
+
+.party-seat-row .party-logo-wrapper {
+  flex-shrink: 0;
+}
+
+.party-seat-row .party-logo-wrapper .party-logo {
+  width: 32px;
+  height: 32px;
 }
 
 .party-seat-row .bar-container {
@@ -1086,10 +1524,15 @@ button:disabled:hover {
   align-items: center;
   padding: 0 0.8rem;
   min-width: fit-content;
-  transition: width 0.4s ease;
+  transition: width 0.4s ease, box-shadow 0.3s ease;
   border-radius: 10px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 0 15px color-mix(in srgb, var(--party-color) 40%, transparent);
+}
+
+.party-seat-row:hover .bar {
+  box-shadow: 0 0 25px color-mix(in srgb, var(--party-color) 60%, transparent);
 }
 
 /* Shine effect on bars */
@@ -1379,12 +1822,17 @@ button:disabled:hover {
   gap: 0.75rem;
 }
 
-.modal-party-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  background: var(--modal-accent);
+.modal-party-logo {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-party-logo .party-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
 }
 
 .modal-title {
@@ -1481,5 +1929,527 @@ button:disabled:hover {
   .modal-table td {
     padding: 0.5rem 0.75rem;
     font-size: 0.85rem;
+  }
+}
+
+/* =============================================
+   WHIMSICAL ANIMATIONS
+   ============================================= */
+
+/* Keyframe Definitions */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes popBounce {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  70% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes riseUp {
+  from {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: translateX(-50%) rotate(0deg); }
+  20% { transform: translateX(-50%) rotate(-5deg); }
+  40% { transform: translateX(-50%) rotate(5deg); }
+  60% { transform: translateX(-50%) rotate(-3deg); }
+  80% { transform: translateX(-50%) rotate(3deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes glow {
+  0%, 100% { 
+    box-shadow: 0 0 5px var(--party-color),
+                0 0 10px color-mix(in srgb, var(--party-color) 50%, transparent);
+  }
+  50% { 
+    box-shadow: 0 0 15px var(--party-color),
+                0 0 30px color-mix(in srgb, var(--party-color) 50%, transparent);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.1); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  70% { transform: scale(1); }
+}
+
+@keyframes rainbow {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* Staggered Entrance for Party List Rows - On page load and tab switch */
+.partylist-row.entrance-animate {
+  animation: slideInLeft 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+  animation-delay: calc(var(--entrance-index, 0) * 0.05s);
+}
+
+/* Bouncing Seat Dots - On page load and tab switch */
+.seat-dot.entrance-animate {
+  animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) backwards;
+  animation-delay: calc(0.3s + var(--entrance-index, 0) * 0.01s);
+}
+
+/* Candidate Rise Up Animation - On page load and tab switch */
+.top-party-candidate.entrance-animate {
+  animation: riseUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation-delay: calc(0.2s + var(--entrance-index, 0) * 0.15s);
+}
+
+/* Top Party Bars Entrance - On page load and tab switch */
+.top-party-bar.entrance-animate {
+  animation: slideInRight 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+  animation-delay: calc(0.1s + var(--entrance-index, 0) * 0.1s);
+}
+
+/* District Box Pop Animation - Fast, on tab switch only */
+.district-box.entrance-animate:not(.no-data) {
+  animation: popBounce 0.15s cubic-bezier(0.68, -0.55, 0.265, 1.55) backwards;
+  animation-delay: calc(var(--entrance-index, 0) * 0.002s);
+}
+
+/* Wiggle on Hover for Candidates */
+.top-party-bar:hover .top-party-candidate {
+  animation-name: wiggle;
+  animation-duration: 0.6s;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: none;
+}
+
+/* Pulse Seat Count on Hover */
+.partylist-row:hover .partylist-seats {
+  animation: pulse 0.6s ease-in-out infinite;
+}
+
+/* Glowing Party Color on Hover */
+.partylist-row:hover {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--party-color) 40%, transparent),
+              0 0 40px color-mix(in srgb, var(--party-color) 20%, transparent);
+}
+
+/* Party Row Entrance in Overview - On page load and tab switch */
+.party-row.entrance-animate {
+  animation: slideInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+  animation-delay: calc(var(--entrance-index, 0) * 0.02s);
+}
+
+/* Top 3 Item Entrance - On page load and tab switch */
+.top3-item.entrance-animate {
+  animation: slideInLeft 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+  animation-delay: calc(0.1s + var(--entrance-index, 0) * 0.1s);
+}
+
+/* Card Entrance - On page load and tab switch */
+.card.entrance-animate {
+  animation: scaleIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) backwards;
+  animation-delay: calc(var(--entrance-index, 0) * 0.05s);
+}
+
+/* Input tab: keep entrance animation lightweight to avoid choppy feel */
+#input .card.entrance-animate {
+  animation: fadeIn 0.25s ease-out backwards;
+  transform: none;
+}
+
+/* Tab Button Hover */
+.tab {
+  position: relative;
+  overflow: hidden;
+}
+
+.tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+.tab:hover::after,
+.tab.active::after {
+  width: 80%;
+}
+
+/* Party Logo Spin on Click */
+.party-logo:active {
+  animation: spin 0.4s ease-out;
+}
+
+/* Coalition Card Bounce - On page load and tab switch */
+.party-card.entrance-animate {
+  animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) backwards;
+  animation-delay: calc(var(--entrance-index, 0) * 0.03s);
+}
+
+.party-card.selected {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Party Seat Row in Districts Sidebar - On page load and tab switch */
+.party-seat-row.entrance-animate {
+  animation: slideInRight 0.3s ease-out backwards;
+  animation-delay: calc(0.05s + var(--entrance-index, 0) * 0.05s);
+}
+
+/* Shimmer Effect for Loading States */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 0%,
+    var(--bg-card-hover) 50%,
+    var(--bg-elevated) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Header Brand Hover */
+.brand:hover {
+  animation: heartbeat 1s ease-in-out;
+}
+
+/* Meta Value Counter Animation Class */
+.meta-value.counting {
+  animation: pulse 0.3s ease-out;
+}
+
+/* Modal Entrance */
+.modal-overlay.show .modal-content {
+  animation: bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Confetti Container (for JS to populate) */
+.confetti-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  animation: confettiFall 3s linear forwards;
+}
+
+@keyframes confettiFall {
+  0% {
+    transform: translateY(-100%) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Success State Animation */
+.success-burst {
+  animation: rainbow 2s linear;
+}
+
+/* Coalition Success State */
+#coalitionStatus {
+  transition: all 0.3s ease;
+}
+
+.success-burst {
+  animation: rainbow 2s linear, pulse 0.5s ease-in-out 3 !important;
+  color: var(--accent-emerald) !important;
+  font-weight: 700 !important;
+}
+
+/* Active District Box Pulse */
+.district-box.active {
+  animation: glow 1.5s ease-in-out infinite;
+}
+
+/* Tab Switch Animation */
+.panel {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Party Card Selection Animation */
+.party-card.selected {
+  animation: bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Hover Effects for Top 3 Items */
+.top3-item {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.top3-item:hover {
+  transform: translateX(8px) scale(1.02);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--party-color) 40%, transparent);
+}
+
+/* Map Province Hover */
+.map-province:hover .district-box:not(.no-data) {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Button Press Effect */
+.btn:active,
+button:active {
+  transform: scale(0.95);
+}
+
+/* Input Focus Animation */
+input:focus,
+select:focus,
+[contenteditable="true"]:focus {
+  animation: glow 2s ease-in-out infinite;
+  outline: none;
+}
+
+/* Loading Dots Animation */
+@keyframes loadingDots {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
+}
+
+.loading-text::after {
+  content: '';
+  animation: loadingDots 1.5s infinite;
+}
+
+/* Sparkle Effect for High Numbers */
+.meta-value {
+  position: relative;
+}
+
+.meta-value::after {
+  content: '✨';
+  position: absolute;
+  top: -5px;
+  right: -15px;
+  font-size: 0.8rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.meta-value:hover::after {
+  opacity: 1;
+  animation: float 1s ease-in-out infinite;
+}
+
+/* Tooltip Animation */
+.tooltip {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Brand Hover Animation */
+.brand {
+  transition: transform 0.3s ease;
+}
+
+.brand:hover {
+  transform: scale(1.05);
+}
+
+/* Party Overview Row Hover Lift */
+.party-row:hover {
+  transform: translateY(-2px) translateX(4px);
+  box-shadow: 0 4px 20px color-mix(in srgb, var(--party-color) 30%, transparent);
+}
+
+/* Coalition Tag Pop */
+#coalitionTags span {
+  display: inline-block;
+  animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) backwards;
+}
+
+#coalitionTags span:nth-child(1) { animation-delay: 0.05s; }
+#coalitionTags span:nth-child(2) { animation-delay: 0.1s; }
+#coalitionTags span:nth-child(3) { animation-delay: 0.15s; }
+#coalitionTags span:nth-child(4) { animation-delay: 0.2s; }
+#coalitionTags span:nth-child(5) { animation-delay: 0.25s; }
+#coalitionTags span:nth-child(6) { animation-delay: 0.3s; }
+#coalitionTags span:nth-child(7) { animation-delay: 0.35s; }
+#coalitionTags span:nth-child(8) { animation-delay: 0.4s; }
+
+/* Table Row Hover Slide */
+table tbody tr {
+  transition: all 0.2s ease;
+}
+
+table tbody tr:hover {
+  transform: translateX(4px);
+  background: var(--bg-card-hover);
+}
+
+/* Scroll Reveal (elements fade in as they enter viewport) */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease-out;
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Ripple Effect for Buttons */
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+}
+
+.ripple:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
