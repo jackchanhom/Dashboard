@@ -1159,3 +1159,98 @@ button:disabled:hover {
 .coalition-score {
   animation: countUp 0.5s ease-out;
 }
+
+/* =============================================
+   LOADING OVERLAY
+   ============================================= */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.loading-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.loading-content {
+  text-align: center;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.loading-spinner {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.5rem;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.loading-status {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+.loading-progress {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.loading-progress__bar {
+  height: 100%;
+  width: 0%;
+  background: var(--gradient-primary);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.loading-substatus {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  min-height: 1.2em;
+}
+
+.loading-overlay.error .loading-spinner {
+  border-top-color: var(--accent-red);
+  animation: none;
+}
+
+.loading-overlay.error .loading-title {
+  color: var(--accent-red);
+}
+
+.loading-overlay.success .loading-spinner {
+  border-color: var(--accent-emerald);
+  border-top-color: var(--accent-emerald);
+  animation: none;
+}
+
+.loading-overlay.success .loading-title {
+  color: var(--accent-emerald);
+}

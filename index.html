@@ -16,6 +16,19 @@
     </script>
   </head>
   <body>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="loading-content">
+        <div class="loading-spinner"></div>
+        <h2 class="loading-title">กำลังโหลดข้อมูล</h2>
+        <p class="loading-status" id="loadingStatus">กำลังเชื่อมต่อ Google Sheets...</p>
+        <div class="loading-progress">
+          <div class="loading-progress__bar" id="loadingProgressBar"></div>
+        </div>
+        <p class="loading-substatus" id="loadingSubstatus"></p>
+      </div>
+    </div>
+
     <header class="topbar">
       <div class="brand">
         <h1>รายงานผลเลือกตั้ง 2566</h1>

@@ -536,18 +536,42 @@ const normalizeRow = (row) => {
   };
 };
 
+// Loading overlay helpers
+const updateLoadingScreen = (status, progress, substatus = "") => {
+  const overlay = document.getElementById("loadingOverlay");
+  const statusEl = document.getElementById("loadingStatus");
+  const progressBar = document.getElementById("loadingProgressBar");
+  const substatusEl = document.getElementById("loadingSubstatus");
+  
+  if (statusEl) statusEl.textContent = status;
+  if (progressBar) progressBar.style.width = `${progress}%`;
+  if (substatusEl) substatusEl.textContent = substatus;
+};
+
+const hideLoadingScreen = (delay = 500) => {
+  const overlay = document.getElementById("loadingOverlay");
+  if (overlay) {
+    setTimeout(() => {
+      overlay.classList.add("hidden");
+    }, delay);
+  }
+};
+
+const showLoadingError = (message) => {
+  const overlay = document.getElementById("loadingOverlay");
+  const titleEl = overlay?.querySelector(".loading-title");
+  
+  if (overlay) overlay.classList.add("error");
+  if (titleEl) titleEl.textContent = "เกิดข้อผิดพลาด";
+  updateLoadingScreen(message, 100, "กำลังใช้ข้อมูลสำรอง...");
+};
+
 const loadData = async () => {
   let data = null;
-  try {
-    const response = await fetch("data/results.json");
-    if (!response.ok) {
-      throw new Error("results not found");
-    }
-    data = await response.json();
-  } catch (error) {
-    data = window.__RESULTS__ || { candidates: [], partyList: [] };
-  }
-
+  let useGoogleSheets = true;
+  
+  // Load province layout first (needed for map)
+  updateLoadingScreen("กำลังโหลดข้อมูลแผนที่...", 5);
   try {
     const layoutResponse = await fetch("data/province_layout.json");
     if (!layoutResponse.ok) {
@@ -557,14 +581,74 @@ const loadData = async () => {
   } catch (error) {
     state.provinceLayout = defaultProvinceLayout;
   }
-
-  state.rawRows = (data.candidates || [])
-    .map((row) => normalizeRow(row))
-    .filter(Boolean);
-  state.partyList = data.partyList || [];
+  
+  // Try to auto-fetch from Google Sheets
+  updateLoadingScreen("กำลังเชื่อมต่อ Google Sheets...", 15);
+  
+  try {
+    // Fetch district data from Google Sheets
+    updateLoadingScreen("กำลังดาวน์โหลดข้อมูลรายเขต...", 25);
+    const cacheBuster = `&_t=${Date.now()}`;
+    const districtUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${DISTRICT_GID}${cacheBuster}`;
+    
+    const districtText = await fetchWithProxy(districtUrl);
+    const districtData = parseCsv(districtText);
+    
+    if (districtData.length > 0) {
+      state.rawRows = districtData;
+      updateLoadingScreen("โหลดข้อมูลรายเขตสำเร็จ", 50, `${districtData.length} แถว`);
+    } else {
+      throw new Error("ไม่พบข้อมูลรายเขต");
+    }
+    
+    // Fetch party list data from Google Sheets
+    updateLoadingScreen("กำลังดาวน์โหลดข้อมูลบัญชีรายชื่อ...", 60);
+    const partyListUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTY_LIST_GID}${cacheBuster}`;
+    
+    const partyListText = await fetchWithProxy(partyListUrl);
+    const partyListData = parsePartyListCsv(partyListText);
+    
+    if (partyListData.length > 0) {
+      state.partyList = partyListData;
+      const totalSeats = partyListData.reduce((sum, p) => sum + p.seats, 0);
+      updateLoadingScreen("โหลดข้อมูลบัญชีรายชื่อสำเร็จ", 80, `${partyListData.length} พรรค, ${totalSeats} ที่นั่ง`);
+    }
+    
+    updateLoadingScreen("กำลังประมวลผลข้อมูล...", 90);
+    
+  } catch (error) {
+    console.warn("Google Sheets fetch failed, using fallback:", error);
+    showLoadingError(error.message || "ไม่สามารถเชื่อมต่อ Google Sheets ได้");
+    
+    // Fall back to local data
+    try {
+      const response = await fetch("data/results.json");
+      if (response.ok) {
+        data = await response.json();
+      }
+    } catch (e) {
+      data = window.__RESULTS__ || { candidates: [], partyList: [] };
+    }
+    
+    if (!data) {
+      data = window.__RESULTS__ || { candidates: [], partyList: [] };
+    }
+    
+    state.rawRows = (data.candidates || [])
+      .map((row) => normalizeRow(row))
+      .filter(Boolean);
+    state.partyList = data.partyList || [];
+  }
+  
+  // Initialize map and render
+  updateLoadingScreen("กำลังแสดงผลหน้าจอ...", 95);
   updateMapTransform();
   initMapDrag();
   recalculate();
+  
+  // Hide loading screen
+  updateLoadingScreen("โหลดเสร็จสมบูรณ์!", 100);
+  hideLoadingScreen(800);
 };
 
 const recalculate = () => {
