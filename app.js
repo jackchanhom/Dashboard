@@ -57,14 +57,48 @@ const elements = {
 const formatNumber = (value) =>
   new Intl.NumberFormat("th-TH").format(value || 0);
 
+let tooltipTimeout = null;
+
 const updateTooltip = (event, html) => {
+  // Clear any pending auto-hide
+  if (tooltipTimeout) {
+    clearTimeout(tooltipTimeout);
+    tooltipTimeout = null;
+  }
+  
+  // Handle both mouse and touch events
+  const x = event.touches ? event.touches[0].clientX : event.clientX;
+  const y = event.touches ? event.touches[0].clientY : event.clientY;
+  
   tooltip.innerHTML = html;
-  tooltip.style.left = `${event.clientX + 12}px`;
-  tooltip.style.top = `${event.clientY + 12}px`;
+  tooltip.style.left = `${x + 12}px`;
+  tooltip.style.top = `${y + 12}px`;
   tooltip.classList.add("show");
+  
+  // Auto-hide after 3 seconds on touch devices
+  if ("ontouchstart" in window) {
+    tooltipTimeout = setTimeout(hideTooltip, 3000);
+  }
 };
 
-const hideTooltip = () => tooltip.classList.remove("show");
+const hideTooltip = () => {
+  tooltip.classList.remove("show");
+  if (tooltipTimeout) {
+    clearTimeout(tooltipTimeout);
+    tooltipTimeout = null;
+  }
+};
+
+// Hide tooltip when tapping anywhere else (for mobile)
+document.addEventListener("touchstart", (event) => {
+  const target = event.target;
+  const isDistrictBox = target.closest(".map-province__district");
+  const isPartyRow = target.closest(".party-seat-row, .party-list tbody tr, .overview-table tbody tr");
+  
+  if (!isDistrictBox && !isPartyRow) {
+    hideTooltip();
+  }
+});
 
 const palette = [
   "#f38b00",
