@@ -265,6 +265,31 @@
       </section>
     </main>
 
+    <!-- Party Winners Modal -->
+    <div id="partyWinnersModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+        <div class="modal-header">
+          <span class="modal-party-color"></span>
+          <h2 class="modal-title">ผู้ชนะจากพรรค</h2>
+          <span class="modal-count"></span>
+        </div>
+        <div class="modal-body">
+          <table class="modal-table">
+            <thead>
+              <tr>
+                <th>ชื่อ</th>
+                <th>จังหวัด</th>
+                <th>เขต</th>
+                <th>คะแนน</th>
+              </tr>
+            </thead>
+            <tbody id="modalWinnersList"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <div id="tooltip" class="tooltip" role="tooltip"></div>
 
     <script>

@@ -113,6 +113,82 @@ document.addEventListener("touchstart", (event) => {
   }
 });
 
+// Party Winners Modal functions
+const showPartyWinnersModal = (partyName, partyColor) => {
+  const modal = document.getElementById("partyWinnersModal");
+  const titleEl = modal.querySelector(".modal-title");
+  const countEl = modal.querySelector(".modal-count");
+  const colorEl = modal.querySelector(".modal-party-color");
+  const listEl = document.getElementById("modalWinnersList");
+  
+  // Filter winners by party and sort by province, then district
+  const winners = state.districtWinners
+    .filter((w) => w.party === partyName)
+    .sort((a, b) => {
+      const provinceCompare = a.province.localeCompare(b.province, "th");
+      if (provinceCompare !== 0) return provinceCompare;
+      return a.district - b.district;
+    });
+  
+  // Set party color as CSS variable
+  modal.style.setProperty("--modal-accent", partyColor);
+  colorEl.style.background = partyColor;
+  
+  // Update header
+  titleEl.textContent = `ผู้ชนะจากพรรค${partyName}`;
+  countEl.textContent = `${winners.length} เขต`;
+  
+  // Populate table
+  listEl.innerHTML = winners
+    .map((w) => `
+      <tr>
+        <td>${w.name}</td>
+        <td>${w.province}</td>
+        <td>${w.district}</td>
+        <td>${formatNumber(w.votes)}</td>
+      </tr>
+    `)
+    .join("");
+  
+  // Show modal
+  modal.classList.remove("hidden");
+  
+  // Prevent body scroll
+  document.body.style.overflow = "hidden";
+};
+
+const hidePartyWinnersModal = () => {
+  const modal = document.getElementById("partyWinnersModal");
+  modal.classList.add("hidden");
+  document.body.style.overflow = "";
+};
+
+// Modal event listeners
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("partyWinnersModal");
+  const closeBtn = document.getElementById("modalClose");
+  
+  if (closeBtn) {
+    closeBtn.addEventListener("click", hidePartyWinnersModal);
+  }
+  
+  if (modal) {
+    // Close on overlay click
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        hidePartyWinnersModal();
+      }
+    });
+  }
+  
+  // Close on Escape key
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      hidePartyWinnersModal();
+    }
+  });
+});
+
 const palette = [
   "#f38b00",
   "#d92d27",
@@ -538,6 +614,7 @@ const normalizeRow = (row) => {
   const party = `${row.party ?? ""}`.trim();
   const district = Number(`${row.district ?? ""}`.trim());
   const votes = Number(`${row.votes ?? ""}`.trim());
+  const counted = `${row.counted ?? ""}`.trim();
   if (!province || Number.isNaN(district)) {
     return null;
   }
@@ -548,6 +625,7 @@ const normalizeRow = (row) => {
     name,
     party,
     votes: Number.isNaN(votes) ? 0 : votes,
+    counted,
   };
 };
 
@@ -782,10 +860,8 @@ const renderOverview = () => {
       });
       row.addEventListener("mouseleave", hideTooltip);
       row.addEventListener("click", () => {
-        state.pinnedPartyId =
-          state.pinnedPartyId === party.id ? null : party.id;
-        renderOverview();
-        renderPartyList();
+        hideTooltip();
+        showPartyWinnersModal(party.name, party.color);
       });
       return row;
     });
@@ -881,6 +957,11 @@ const renderPartyVotes = () => {
       }
     });
     row.addEventListener("mouseleave", hideTooltip);
+    row.addEventListener("click", () => {
+      hideTooltip();
+      showPartyWinnersModal(item.party, color);
+    });
+    row.style.cursor = "pointer";
     elements.partyVotesList.appendChild(row);
   });
   
@@ -1072,15 +1153,44 @@ const renderTop3 = () => {
     .filter(
       (row) => row.province === province && Number(row.district) === district
     )
-    .sort((a, b) => b.votes - a.votes)
-    .slice(0, 3);
+    .sort((a, b) => b.votes - a.votes);
+  
+  // Get the highest "counted" value for this district
+  let countedValue = "";
+  candidates.forEach((row) => {
+    if (row.counted && row.counted.trim()) {
+      // If we already have a value, compare and keep the higher one
+      if (countedValue) {
+        // Try to extract numbers for comparison (e.g., "4/20" -> compare first number)
+        const currentMatch = countedValue.match(/(\d+)/);
+        const newMatch = row.counted.match(/(\d+)/);
+        if (currentMatch && newMatch) {
+          if (parseInt(newMatch[1]) > parseInt(currentMatch[1])) {
+            countedValue = row.counted.trim();
+          }
+        }
+      } else {
+        countedValue = row.counted.trim();
+      }
+    }
+  });
 
-  if (!candidates.length) {
+  const top3 = candidates.slice(0, 3);
+
+  if (!top3.length) {
     elements.top3List.innerHTML = `<div class="muted">ยังไม่มีข้อมูลสำหรับเขตนี้</div>`;
     return;
   }
 
-  elements.top3List.innerHTML = candidates
+  // Build the counted display HTML
+  const countedHtml = countedValue 
+    ? `<div class="counted-status">
+        <span class="counted-label">หน่วยที่นับได้</span>
+        <span class="counted-value">${countedValue}</span>
+      </div>`
+    : "";
+
+  elements.top3List.innerHTML = countedHtml + top3
     .map(
       (candidate, index) => `
       <div class="top3-item">
@@ -1161,9 +1271,9 @@ const renderCoalition = () => {
 };
 
 const updateCoalitionScore = () => {
-  const selected = state.parties.filter((party) =>
-    state.selectedParties.has(party.id)
-  );
+  const selected = state.parties
+    .filter((party) => state.selectedParties.has(party.id))
+    .sort((a, b) => b.totalSeats - a.totalSeats);
   const baseTotal = selected.reduce((sum, party) => sum + party.totalSeats, 0);
   const total = baseTotal;
   elements.coalitionTotal.textContent = formatNumber(total);
@@ -1319,6 +1429,7 @@ const parseCsv = (text) => {
         name: record.name,
         party: record.party,
         votes: record.votes,
+        counted: record.counted,
       });
     })
     .filter(Boolean);
@@ -1358,12 +1469,14 @@ const normalizeHeader = (header) => {
   if (clean === "ชื่อ") return "name";
   if (clean === "พรรค 2569") return "party";
   if (clean === "คะแนน") return "votes";
+  if (clean === "นับคะแนนแล้ว") return "counted";
   if (clean === "region") return "region";
   if (clean === "province") return "province";
   if (clean === "district") return "district";
   if (clean === "candidate") return "name";
   if (clean === "party") return "party";
   if (clean === "votes") return "votes";
+  if (clean === "counted") return "counted";
   return clean;
 };
 
