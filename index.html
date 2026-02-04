@@ -9,7 +9,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css" />
+    <script>
+      // Cache-busting: Load CSS with timestamp to always get fresh version
+      const cacheBuster = Date.now();
+      document.write('<link rel="stylesheet" href="styles.css?v=' + cacheBuster + '">');
+    </script>
   </head>
   <body>
     <header class="topbar">
@@ -250,7 +254,11 @@
 
     <div id="tooltip" class="tooltip" role="tooltip"></div>
 
-    <script src="data/results.js"></script>
-    <script src="app.js"></script>
+    <script>
+      // Cache-busting: Load JS with timestamp to always get fresh version
+      const v = Date.now();
+      document.write('<script src="data/results.js?v=' + v + '"><\/script>');
+      document.write('<script src="app.js?v=' + v + '"><\/script>');
+    </script>
   </body>
 </html>
