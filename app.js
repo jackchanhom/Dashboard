@@ -11,8 +11,8 @@ const state = {
   activeDistrict: null,
   provinceLayout: null,
   editedProvincePositions: new Map(),
-  mapZoom: 0.9,
-  mapPan: { x: 0, y: 0 },
+  mapZoom: 0.70,
+  mapPan: { x: 260, y: 25 },
   isDragging: false,
   dragStart: { x: 0, y: 0 },
   draggingProvince: null,
@@ -388,7 +388,7 @@ const loadData = async () => {
     .map((row) => normalizeRow(row))
     .filter(Boolean);
   state.partyList = data.partyList || [];
-  setMapZoom(0.9);
+  updateMapTransform();
   initMapDrag();
   recalculate();
 };
@@ -1174,18 +1174,34 @@ const downloadPartyListTemplate = async () => {
 const SHEET_ID = "19cLkQfXtcwbnVFR6ilNd7ZeqRTUYU2jrmCCRsyFJ61w";
 const DISTRICT_GID = "0";
 const PARTY_LIST_GID = "170759107";
-const CORS_PROXY = "https://api.allorigins.win/raw?url=";
+
+// Multiple CORS proxies as fallback
+const CORS_PROXIES = [
+  "https://corsproxy.io/?",
+  "https://api.allorigins.win/raw?url=",
+  "https://api.codetabs.com/v1/proxy?quest="
+];
+
+const fetchWithProxy = async (targetUrl) => {
+  for (const proxy of CORS_PROXIES) {
+    try {
+      const url = proxy + encodeURIComponent(targetUrl);
+      const response = await fetch(url, { cache: "no-store" });
+      if (response.ok) {
+        return await response.text();
+      }
+    } catch (e) {
+      console.log(`Proxy ${proxy} failed, trying next...`);
+    }
+  }
+  throw new Error("ไม่สามารถดึงข้อมูลจาก Google Sheet ได้");
+};
 
 const importFromGoogleSheet = async () => {
   const cacheBuster = `&_t=${Date.now()}`;
   const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${DISTRICT_GID}${cacheBuster}`;
-  const url = CORS_PROXY + encodeURIComponent(sheetUrl);
   try {
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error("ไม่สามารถดึงข้อมูลจาก Google Sheet ได้");
-    }
-    const text = await response.text();
+    const text = await fetchWithProxy(sheetUrl);
     const mapped = parseCsv(text);
     state.rawRows = mapped;
     recalculate();
@@ -1198,13 +1214,8 @@ const importFromGoogleSheet = async () => {
 const importPartyListFromGoogleSheet = async () => {
   const cacheBuster = `&_t=${Date.now()}`;
   const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTY_LIST_GID}${cacheBuster}`;
-  const url = CORS_PROXY + encodeURIComponent(sheetUrl);
   try {
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error("ไม่สามารถดึงข้อมูลจาก Google Sheet ได้");
-    }
-    const text = await response.text();
+    const text = await fetchWithProxy(sheetUrl);
     console.log("Raw CSV text (first 500 chars):", text.substring(0, 500));
     state.partyList = parsePartyListCsv(text);
     console.log("Parsed party list:", state.partyList);
@@ -1297,7 +1308,25 @@ if (elements.zoomIn && elements.zoomOut && elements.mapViewport) {
     (event) => {
       event.preventDefault();
       const delta = event.deltaY > 0 ? -0.02 : 0.02;
-      setMapZoom(state.mapZoom + delta);
+      const newZoom = Math.min(2.5, Math.max(0.4, state.mapZoom + delta));
+      
+      // Get mouse position relative to viewport
+      const rect = elements.mapViewport.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+      
+      // Calculate the point in map space under the cursor
+      const mapX = (mouseX - state.mapPan.x) / state.mapZoom;
+      const mapY = (mouseY - state.mapPan.y) / state.mapZoom;
+      
+      // Update zoom
+      state.mapZoom = newZoom;
+      
+      // Adjust pan so the same map point stays under the cursor
+      state.mapPan.x = mouseX - mapX * newZoom;
+      state.mapPan.y = mouseY - mapY * newZoom;
+      
+      updateMapTransform();
     },
     { passive: false }
   );
