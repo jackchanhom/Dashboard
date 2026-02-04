@@ -376,25 +376,6 @@ body {
   background: var(--bg-card-hover);
 }
 
-/* =============================================
-   PROGRESS BAR
-   ============================================= */
-.progress {
-  background: var(--bg-elevated);
-  border-radius: 999px;
-  overflow: hidden;
-  height: 10px;
-  margin-bottom: 0.5rem;
-}
-
-.progress__bar {
-  height: 100%;
-  background: var(--gradient-success);
-  width: 0%;
-  transition: width 0.5s ease;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-}
-
 .muted {
   color: var(--text-muted);
   font-size: 0.85rem;
@@ -619,6 +600,57 @@ tbody tr.active {
   cursor: grabbing;
 }
 
+/* Touch instruction popup for mobile */
+.touch-instruction {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.85);
+  z-index: 50;
+  pointer-events: none;
+  animation: fadeIn 0.2s ease;
+}
+
+.touch-instruction.hidden {
+  display: none;
+}
+
+.touch-instruction__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 2rem;
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+}
+
+.touch-instruction__icon {
+  font-size: 2.5rem;
+  animation: pulse 1.5s infinite;
+}
+
+.touch-instruction__text {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .map-content {
   position: absolute;
   width: 660px;
@@ -803,6 +835,17 @@ button:active,
   transform: translateY(0);
 }
 
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .upload input {
   display: none;
 }
@@ -812,6 +855,75 @@ button:active,
   gap: 0.8rem;
   flex-wrap: wrap;
   margin-bottom: 1rem;
+}
+
+/* =============================================
+   IMPORT PROGRESS
+   ============================================= */
+.import-progress {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--bg-elevated);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.import-progress.hidden {
+  display: none;
+}
+
+.import-progress__steps {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.import-progress__steps .step {
+  background: var(--gradient-primary);
+  color: white;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.import-progress__steps .step-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.import-progress__bar {
+  height: 8px;
+  background: var(--bg-primary);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.import-progress__fill {
+  height: 100%;
+  background: var(--gradient-success);
+  border-radius: 999px;
+  width: 0%;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.import-progress.error .import-progress__fill {
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.import-progress.error .step {
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
+}
+
+.import-progress.success .import-progress__fill {
+  width: 100%;
+}
+
+.import-progress.success .step {
+  background: var(--gradient-success);
 }
 
 /* =============================================

@@ -23,9 +23,6 @@ const elements = {
   countedTotal: document.getElementById("countedTotal"),
   partyOverview: document.getElementById("partyOverview"),
   topPartyList: document.getElementById("topPartyList"),
-  latestUpdate: document.getElementById("latestUpdate"),
-  progressBar: document.getElementById("progressBar"),
-  progressLabel: document.getElementById("progressLabel"),
   provinceFilter: document.getElementById("provinceFilter"),
   partyFilter: document.getElementById("partyFilter"),
   districtSearch: document.getElementById("districtSearch"),
@@ -290,6 +287,149 @@ const initMapDrag = () => {
       }
     }
   });
+
+  // Touch support for mobile devices
+  const touchInstruction = document.getElementById("touchInstruction");
+  let touchState = {
+    lastTouchDistance: 0,
+    lastTouchCenter: { x: 0, y: 0 },
+    isTwoFingerGesture: false,
+    holdTimer: null,
+  };
+
+  const getTouchDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const getTouchCenter = (touches) => {
+    return {
+      x: (touches[0].clientX + touches[1].clientX) / 2,
+      y: (touches[0].clientY + touches[1].clientY) / 2,
+    };
+  };
+
+  const showTouchInstruction = () => {
+    if (touchInstruction) {
+      touchInstruction.classList.remove("hidden");
+    }
+  };
+
+  const hideTouchInstruction = () => {
+    if (touchInstruction) {
+      touchInstruction.classList.add("hidden");
+    }
+  };
+
+  elements.mapViewport.addEventListener("touchstart", (event) => {
+    // Clear any existing hold timer
+    if (touchState.holdTimer) {
+      clearTimeout(touchState.holdTimer);
+      touchState.holdTimer = null;
+    }
+
+    if (event.touches.length === 1) {
+      // Single finger - start hold timer for instruction popup
+      touchState.isTwoFingerGesture = false;
+      touchState.holdTimer = setTimeout(() => {
+        showTouchInstruction();
+      }, 300);
+    } else if (event.touches.length === 2) {
+      // Two fingers - start pan/zoom gesture
+      event.preventDefault();
+      hideTouchInstruction();
+      touchState.isTwoFingerGesture = true;
+      touchState.lastTouchDistance = getTouchDistance(event.touches);
+      touchState.lastTouchCenter = getTouchCenter(event.touches);
+    }
+  }, { passive: false });
+
+  elements.mapViewport.addEventListener("touchmove", (event) => {
+    // Clear hold timer on any movement
+    if (touchState.holdTimer) {
+      clearTimeout(touchState.holdTimer);
+      touchState.holdTimer = null;
+    }
+
+    if (event.touches.length === 2) {
+      event.preventDefault();
+      hideTouchInstruction();
+      touchState.isTwoFingerGesture = true;
+
+      // Calculate pinch zoom
+      const currentDistance = getTouchDistance(event.touches);
+      const currentCenter = getTouchCenter(event.touches);
+
+      if (touchState.lastTouchDistance > 0) {
+        // Zoom based on pinch
+        const scale = currentDistance / touchState.lastTouchDistance;
+        const newZoom = Math.min(2.5, Math.max(0.4, state.mapZoom * scale));
+        
+        // Get viewport-relative center for zoom
+        const rect = elements.mapViewport.getBoundingClientRect();
+        const centerX = currentCenter.x - rect.left;
+        const centerY = currentCenter.y - rect.top;
+        
+        // Calculate map point under pinch center
+        const mapX = (centerX - state.mapPan.x) / state.mapZoom;
+        const mapY = (centerY - state.mapPan.y) / state.mapZoom;
+        
+        // Update zoom
+        state.mapZoom = newZoom;
+        
+        // Adjust pan to keep pinch center fixed
+        state.mapPan.x = centerX - mapX * newZoom;
+        state.mapPan.y = centerY - mapY * newZoom;
+      }
+
+      // Pan based on center movement
+      if (touchState.lastTouchCenter.x !== 0) {
+        const dx = currentCenter.x - touchState.lastTouchCenter.x;
+        const dy = currentCenter.y - touchState.lastTouchCenter.y;
+        state.mapPan.x += dx;
+        state.mapPan.y += dy;
+      }
+
+      touchState.lastTouchDistance = currentDistance;
+      touchState.lastTouchCenter = currentCenter;
+      updateMapTransform();
+    }
+  }, { passive: false });
+
+  elements.mapViewport.addEventListener("touchend", (event) => {
+    // Clear hold timer
+    if (touchState.holdTimer) {
+      clearTimeout(touchState.holdTimer);
+      touchState.holdTimer = null;
+    }
+
+    // Hide instruction popup
+    hideTouchInstruction();
+
+    // Reset touch state when all fingers lifted
+    if (event.touches.length === 0) {
+      touchState.lastTouchDistance = 0;
+      touchState.lastTouchCenter = { x: 0, y: 0 };
+      touchState.isTwoFingerGesture = false;
+    } else if (event.touches.length === 1) {
+      // Transitioning from 2 fingers to 1
+      touchState.lastTouchDistance = 0;
+      touchState.lastTouchCenter = { x: 0, y: 0 };
+    }
+  });
+
+  elements.mapViewport.addEventListener("touchcancel", () => {
+    // Clear hold timer
+    if (touchState.holdTimer) {
+      clearTimeout(touchState.holdTimer);
+      touchState.holdTimer = null;
+    }
+    hideTouchInstruction();
+    touchState.lastTouchDistance = 0;
+    touchState.lastTouchCenter = { x: 0, y: 0 };
+    touchState.isTwoFingerGesture = false;
+  });
 };
 
 const getProvinceList = (rows) => {
@@ -470,23 +610,6 @@ const renderOverview = () => {
   const totalCounted = state.districtWinners.length;
   const totalDistricts = getTotalDistricts(state.rawRows);
   elements.countedTotal.textContent = formatNumber(totalCounted);
-
-  const latest = state.rawRows[state.rawRows.length - 1];
-  if (elements.latestUpdate) {
-    elements.latestUpdate.textContent = latest
-      ? `${latest.province} เขต ${latest.district} อัปเดตล่าสุด`
-      : "ยังไม่มีการอัปเดต";
-  }
-
-  const progress = totalDistricts
-    ? Math.round((totalCounted / totalDistricts) * 100)
-    : 0;
-  if (elements.progressBar) {
-    elements.progressBar.style.width = `${progress}%`;
-  }
-  if (elements.progressLabel) {
-    elements.progressLabel.textContent = `${progress}% นับแล้ว`;
-  }
 
   const list = [...state.parties]
     .map((party) => ({
@@ -1203,33 +1326,109 @@ const fetchWithProxy = async (targetUrl) => {
   throw new Error("ไม่สามารถดึงข้อมูลจาก Google Sheet ได้");
 };
 
+// Progress indicator helpers
+const updateProgress = (progressEl, step, label, percent) => {
+  if (!progressEl) return;
+  progressEl.classList.remove("hidden", "error", "success");
+  const stepEl = progressEl.querySelector(".step");
+  const labelEl = progressEl.querySelector(".step-label");
+  const fillEl = progressEl.querySelector(".import-progress__fill");
+  if (stepEl) stepEl.textContent = `ขั้นตอน ${step}/3`;
+  if (labelEl) labelEl.textContent = label;
+  if (fillEl) fillEl.style.width = `${percent}%`;
+};
+
+const showProgressSuccess = (progressEl, message) => {
+  if (!progressEl) return;
+  progressEl.classList.add("success");
+  const labelEl = progressEl.querySelector(".step-label");
+  const stepEl = progressEl.querySelector(".step");
+  if (stepEl) stepEl.textContent = "สำเร็จ";
+  if (labelEl) labelEl.textContent = message;
+  setTimeout(() => {
+    progressEl.classList.add("hidden");
+  }, 3000);
+};
+
+const showProgressError = (progressEl, message) => {
+  if (!progressEl) return;
+  progressEl.classList.add("error");
+  const labelEl = progressEl.querySelector(".step-label");
+  const stepEl = progressEl.querySelector(".step");
+  if (stepEl) stepEl.textContent = "ผิดพลาด";
+  if (labelEl) labelEl.textContent = message;
+  setTimeout(() => {
+    progressEl.classList.add("hidden");
+  }, 5000);
+};
+
 const importFromGoogleSheet = async () => {
-  const cacheBuster = `&_t=${Date.now()}`;
-  const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${DISTRICT_GID}${cacheBuster}`;
+  const progressEl = document.getElementById("districtImportProgress");
+  const button = document.getElementById("importFromSheet");
+  
+  // Disable button during import
+  if (button) button.disabled = true;
+  
   try {
+    // Step 1: Connecting
+    updateProgress(progressEl, 1, "กำลังเชื่อมต่อ Google Sheet...", 10);
+    
+    const cacheBuster = `&_t=${Date.now()}`;
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${DISTRICT_GID}${cacheBuster}`;
+    
+    // Step 2: Downloading
+    updateProgress(progressEl, 2, "กำลังดาวน์โหลดข้อมูล...", 40);
     const text = await fetchWithProxy(sheetUrl);
+    
+    // Step 3: Processing
+    updateProgress(progressEl, 3, "กำลังประมวลผลข้อมูล...", 70);
     const mapped = parseCsv(text);
     state.rawRows = mapped;
+    
+    updateProgress(progressEl, 3, "กำลังอัปเดตหน้าจอ...", 90);
     recalculate();
-    alert("นำเข้าข้อมูลรายเขตสำเร็จ! (" + mapped.length + " แถว)");
+    
+    showProgressSuccess(progressEl, `นำเข้าสำเร็จ! (${mapped.length} แถว)`);
   } catch (error) {
-    alert("เกิดข้อผิดพลาด: " + error.message + "\n\nกรุณาลองใหม่อีกครั้ง หรืออัปโหลดไฟล์ CSV แทน");
+    showProgressError(progressEl, error.message);
+  } finally {
+    if (button) button.disabled = false;
   }
 };
 
 const importPartyListFromGoogleSheet = async () => {
-  const cacheBuster = `&_t=${Date.now()}`;
-  const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTY_LIST_GID}${cacheBuster}`;
+  const progressEl = document.getElementById("partyListImportProgress");
+  const button = document.getElementById("importPartyListFromSheet");
+  
+  // Disable button during import
+  if (button) button.disabled = true;
+  
   try {
+    // Step 1: Connecting
+    updateProgress(progressEl, 1, "กำลังเชื่อมต่อ Google Sheet...", 10);
+    
+    const cacheBuster = `&_t=${Date.now()}`;
+    const sheetUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${PARTY_LIST_GID}${cacheBuster}`;
+    
+    // Step 2: Downloading
+    updateProgress(progressEl, 2, "กำลังดาวน์โหลดข้อมูล...", 40);
     const text = await fetchWithProxy(sheetUrl);
+    
+    // Step 3: Processing
+    updateProgress(progressEl, 3, "กำลังประมวลผลข้อมูล...", 70);
     console.log("Raw CSV text (first 500 chars):", text.substring(0, 500));
     state.partyList = parsePartyListCsv(text);
     console.log("Parsed party list:", state.partyList);
+    
+    updateProgress(progressEl, 3, "กำลังอัปเดตหน้าจอ...", 90);
     recalculate();
+    
     const totalSeats = state.partyList.reduce((sum, p) => sum + p.seats, 0);
-    alert(`นำเข้าข้อมูลบัญชีรายชื่อสำเร็จ!\n${state.partyList.length} พรรค\nรวม ${totalSeats} ที่นั่ง`);
+    showProgressSuccess(progressEl, `นำเข้าสำเร็จ! (${state.partyList.length} พรรค, ${totalSeats} ที่นั่ง)`);
   } catch (error) {
-    alert("เกิดข้อผิดพลาด: " + error.message + "\n\nกรุณาลองใหม่อีกครั้ง หรืออัปโหลดไฟล์ CSV แทน");
+    showProgressError(progressEl, error.message);
+  } finally {
+    if (button) button.disabled = false;
   }
 };
 
