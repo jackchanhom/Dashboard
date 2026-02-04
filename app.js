@@ -1,5 +1,18 @@
 const tooltip = document.getElementById("tooltip");
 
+// Detect mobile device
+const isMobile = () => window.innerWidth <= 768 || 'ontouchstart' in window;
+
+// Set initial map position based on device
+const getInitialMapSettings = () => {
+  if (isMobile()) {
+    return { zoom: 0.32, pan: { x: 30, y: 10 } };
+  }
+  return { zoom: 0.70, pan: { x: 260, y: 25 } };
+};
+
+const initialMapSettings = getInitialMapSettings();
+
 const state = {
   rawRows: [],
   partyList: [],
@@ -11,8 +24,8 @@ const state = {
   activeDistrict: null,
   provinceLayout: null,
   editedProvincePositions: new Map(),
-  mapZoom: 0.70,
-  mapPan: { x: 260, y: 25 },
+  mapZoom: initialMapSettings.zoom,
+  mapPan: { ...initialMapSettings.pan },
   isDragging: false,
   dragStart: { x: 0, y: 0 },
   draggingProvince: null,
@@ -261,7 +274,8 @@ const defaultProvinceLayout = {
 };
 
 const setMapZoom = (value) => {
-  const zoom = Math.min(2.5, Math.max(0.4, value));
+  const minZoom = isMobile() ? 0.3 : 0.4;
+  const zoom = Math.min(2.5, Math.max(minZoom, value));
   state.mapZoom = zoom;
   updateMapTransform();
 };
@@ -398,7 +412,8 @@ const initMapDrag = () => {
       if (touchState.lastTouchDistance > 0) {
         // Zoom based on pinch
         const scale = currentDistance / touchState.lastTouchDistance;
-        const newZoom = Math.min(2.5, Math.max(0.4, state.mapZoom * scale));
+        const minZoom = isMobile() ? 0.3 : 0.4;
+        const newZoom = Math.min(2.5, Math.max(minZoom, state.mapZoom * scale));
         
         // Get viewport-relative center for zoom
         const rect = elements.mapViewport.getBoundingClientRect();
@@ -1631,7 +1646,8 @@ if (elements.zoomIn && elements.zoomOut && elements.mapViewport) {
     (event) => {
       event.preventDefault();
       const delta = event.deltaY > 0 ? -0.02 : 0.02;
-      const newZoom = Math.min(2.5, Math.max(0.4, state.mapZoom + delta));
+      const minZoom = isMobile() ? 0.3 : 0.4;
+      const newZoom = Math.min(2.5, Math.max(minZoom, state.mapZoom + delta));
       
       // Get mouse position relative to viewport
       const rect = elements.mapViewport.getBoundingClientRect();
