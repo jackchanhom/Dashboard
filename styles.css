@@ -813,8 +813,10 @@ tbody tr.active {
 }
 
 .district-box.no-data {
-  background: var(--text-muted);
-  color: var(--text-secondary);
+  background: transparent;
+  color: transparent;
+  border-color: transparent;
+  pointer-events: none;
 }
 
 .district-box.active {

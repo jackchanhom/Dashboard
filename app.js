@@ -34,6 +34,7 @@ const state = {
 
 const elements = {
   countedTotal: document.getElementById("countedTotal"),
+  partyListSeatsTotal: document.getElementById("partyListSeatsTotal"),
   partyOverview: document.getElementById("partyOverview"),
   topPartyList: document.getElementById("topPartyList"),
   provinceFilter: document.getElementById("provinceFilter"),
@@ -762,10 +763,13 @@ const calculateDistrictWinners = (rows) => {
         grouped.set(key, row);
       }
     });
-  return Array.from(grouped.values()).map((row) => ({
-    ...row,
-    status: "นับแล้ว",
-  }));
+  // Only include districts where winner has votes > 0 (i.e., data has arrived)
+  return Array.from(grouped.values())
+    .filter((row) => row.votes > 0)
+    .map((row) => ({
+      ...row,
+      status: "นับแล้ว",
+    }));
 };
 
 const buildPartySummary = (winners, partyList) => {
@@ -821,6 +825,12 @@ const renderOverview = () => {
   const totalCounted = state.districtWinners.length;
   const totalDistricts = getTotalDistricts(state.rawRows);
   elements.countedTotal.textContent = formatNumber(totalCounted);
+  
+  // Update party list seats total
+  const totalPartyListSeats = state.partyList.reduce((sum, p) => sum + (p.seats || 0), 0);
+  if (elements.partyListSeatsTotal) {
+    elements.partyListSeatsTotal.textContent = formatNumber(totalPartyListSeats);
+  }
 
   const list = [...state.parties]
     .map((party) => ({
