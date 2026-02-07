@@ -35,6 +35,7 @@ const state = {
 const elements = {
   countedTotal: document.getElementById("countedTotal"),
   partyListSeatsTotal: document.getElementById("partyListSeatsTotal"),
+  partyListCountedPercent: document.getElementById("partyListCountedPercent"),
   partyOverview: document.getElementById("partyOverview"),
   topPartyList: document.getElementById("topPartyList"),
   provinceFilter: document.getElementById("provinceFilter"),
@@ -1000,6 +1001,15 @@ const renderOverview = () => {
       animateValue(elements.partyListSeatsTotal, currentPartyList, totalPartyListSeats, 800);
     }
   }
+  
+  // Update party list counted percent (take max value from all rows)
+  const maxCountedPercent = state.partyList.reduce((max, p) => Math.max(max, p.countedPercent || 0), 0);
+  if (elements.partyListCountedPercent) {
+    const currentPercent = parseFloat(elements.partyListCountedPercent.textContent) || 0;
+    if (currentPercent !== maxCountedPercent) {
+      animateValue(elements.partyListCountedPercent, currentPercent, maxCountedPercent, 800);
+    }
+  }
 
   const list = [...state.parties]
     .map((party) => ({
@@ -1713,10 +1723,13 @@ const parsePartyListCsv = (text) => {
       if (!party) {
         return null;
       }
+      // Parse countedPercent - remove % sign if present
+      const countedPercentRaw = `${record.countedPercent ?? ""}`.trim().replace('%', '');
       return {
         party,
         votes: Number(`${record.votes ?? ""}`.trim()) || 0,
         seats: Number(`${record.seats ?? ""}`.trim()) || 0,
+        countedPercent: Number(countedPercentRaw) || 0,
       };
     })
     .filter(Boolean);
@@ -1763,6 +1776,18 @@ const normalizePartyListHeader = (header) => {
       clean === "จำนวน ส.ส. บัญชีรายชื่อ" ||
       clean === "จำนวน ส.ส.บัญชีรายชื่อ" ||
       clean === "จำนวนสสบัญชีรายชื่อ") return "seats";
+  // Counted percent variations
+  if (clean === "คะแนนที่นับแล้ว (%)" ||
+      clean === "คะแนนที่นับแล้ว(%)" ||
+      clean === "คะแนนที่นับแล้ว" ||
+      clean === "นับแล้ว (%)" ||
+      clean === "นับแล้ว(%)" ||
+      clean === "นับแล้ว" ||
+      clean === "counted" ||
+      clean === "countedpercent" ||
+      clean === "counted_percent" ||
+      clean === "counted percent" ||
+      clean === "%") return "countedPercent";
   return clean;
 };
 
